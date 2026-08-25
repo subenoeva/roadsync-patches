@@ -1,3 +1,9 @@
+## [1.1.0](https://github.com/subenoeva/roadsync-patches/compare/v1.0.0...v1.1.0) (2026-08-25)
+
+### ✨ New Features
+
+* Add Google login bypass patch for Honda RoadSync ([060808b](https://github.com/subenoeva/roadsync-patches/commit/060808b089d751053ccda2c173c334eec126675c))
+
 ## [1.1.0-dev.1](https://github.com/subenoeva/roadsync-patches/compare/v1.0.0...v1.1.0-dev.1) (2026-08-25)
 
 ### ✨ New Features
