@@ -52,6 +52,40 @@ Apps without one already work as plain transport targets and gain nothing from b
 > instead of falling back to plain media session control. Spotify is the known case — its browser
 > service only accepts allowlisted, signed clients, which is why it is not a default here.
 
+### Bypass Google login
+
+Patching re-signs the APK with a new certificate. Google Sign-In validates the app's package name
+plus signing SHA-1 against the OAuth client Honda registered in their Firebase project, so a patched
+build can never obtain a token (`ApiException 10, DEVELOPER_ERROR`) and gets stuck on the login
+screen.
+
+The motorcycle controls do not need that account. The BLE link to the instrument cluster and the
+on-device `call` / `music` / `navigation` / `message` / `volume` pages run without checking auth, so
+this patch removes the two gates that force login:
+
+- `OnboardingLoginBlockerScreen.shouldBeDisplayed()` returns `false`, so onboarding skips the
+  Terms / Privacy / consent / Google sign-in flow.
+- The "token is empty" handlers on the ride and disconnected screens become no-ops, so the app stops
+  re-arming `needsLogin` and stops re-launching Google Sign-In whenever it sees no session.
+
+**On by default**, because re-signing breaks Google Sign-In for every patched build. Disable it only
+if you have a build whose signature Honda's project still accepts and you want the real account
+features.
+
+What stays unavailable: anything that reaches Honda's server — account, trip history, analytics,
+weather — because those gRPC calls now send an empty `Authorization` header.
+
+> [!WARNING]
+> **Pairing a brand-new motorcycle may still need the server.** The "select model" step downloads
+> the vehicle catalog and setup pages over the same authenticated gRPC API. Whether it works with no
+> account depends on whether Honda's backend answers an unauthenticated request:
+> - If it does, pairing completes, the vehicle is saved locally, and the controls work.
+> - If it requires a valid token, the model list comes back empty. Reaching the controls then needs a
+>   motorcycle that is **already paired** in this build — which, on a fresh install, means
+>   transplanting the app database from a signed-in stock install (needs root; `allowBackup` is off).
+>
+> A motorcycle already paired in this build connects straight away and needs none of the above.
+
 <!-- PATCHES_START EXPANDED -->
 > **[v1.1.0-dev.1](https://github.com/subenoeva/roadsync-patches/releases/tag/v1.1.0-dev.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
 <details open>
