@@ -1,0 +1,88 @@
+# 🧩 subenoeva Morphe patches
+
+Morphe patches for **Honda RoadSync** (`com.honda.ms.dm.sab`).
+
+Not affiliated with, or endorsed by, Honda or the Morphe project. These patches are for use with
+Morphe.
+
+## How to use these patches
+
+Add this source to Morphe Manager: https://morphe.software/add-source?github=subenoeva/roadsync-patches
+
+## 🩹 Patches
+
+### Add music sources
+
+RoadSync bundles the Drivemode music SDK, which resolves music apps three ways:
+
+- **supported** — a hardcoded set of `Resolvable` implementations (Spotify, YouTube Music, Apple
+  Music, Amazon Music, Deezer, SoundCloud, VLC, TuneIn, Poweramp, Samsung Music, ...).
+- **generic** — any installed app that declares an `android.intent.action.MEDIA_BUTTON` receiver and
+  is not blacklisted, wrapped in a `GenericMusicApp`.
+- **media browser whitelist** — nine hardcoded package names. Only apps on this list get their
+  `android.media.browse.MediaBrowserService` bound, which is what turns a music app from
+  "play/pause/skip" into a browsable library.
+
+The patch appends packages to that third list. It does not touch the blacklist or the supported set.
+
+Default packages:
+
+| Package | App | Media browser service |
+|---|---|---|
+| `com.aspiro.tidal` | TIDAL | `com.aspiro.wamp.player.MusicService` |
+| `app.morphe.android.apps.youtube.music` | YouTube Music patched with Morphe | `com.google.android.apps.youtube.music.mediabrowser.MusicBrowserService` |
+
+Both are already discovered by RoadSync as generic music apps, so transport control works without
+the patch; whitelisting is what adds library browsing.
+
+#### Option: `extraMusicPackages`
+
+Replaces the default list. An app only benefits from being listed if it declares a
+`android.media.browse.MediaBrowserService` — check with:
+
+```bash
+aapt2 dump xmltree --file AndroidManifest.xml app.apk | grep -B40 'android.media.browse.MediaBrowserService'
+```
+
+Apps without one already work as plain transport targets and gain nothing from being listed.
+
+> [!WARNING]
+> Whitelisting an app whose media browser service refuses connections from unknown clients can make
+> it *worse* than not patching: once a package is whitelisted, RoadSync binds the browser service
+> instead of falling back to plain media session control. Spotify is the known case — its browser
+> service only accepts allowlisted, signed clients, which is why it is not a default here.
+
+<!-- PATCHES_START EXPANDED -->
+
+<!-- Do not modify this section by hand. The patch list is generated when release.yml creates a new release.
+
+     If you wish for the patches list to be collapsed, then remove the word 'EXPANDED' from the comment tag above.
+
+     If you wish to manually keep this list updated then remove the PATCHES_START and PATCHES_END
+     comment blocks entirely. -->
+
+&nbsp;
+
+## 🧑‍💻 Development
+
+- Make all changes on the `dev` branch.
+- `./gradlew buildAndroid` produces `patches/build/libs/patches-*.mpp`.
+- Requires a GitHub token with the `read:packages` scope for
+  `maven.pkg.github.com/MorpheApp/registry`, exported as `GITHUB_ACTOR` / `GITHUB_TOKEN` or set as
+  `gpr.user` / `gpr.key` in `~/.gradle/gradle.properties`.
+- Semantic commits only: `feat:`, `fix:`, `chore:`. `feat`/`fix` cut a pre-release; `chore` does not.
+- Never hand-edit generated files: `patches-list.json`, `patches-bundle.json`, `CHANGELOG.md`.
+- Releases go through `release.yml`. Do not create them by hand, and never force push a semantic
+  release commit.
+
+Apply a local build to an APK:
+
+```bash
+java -jar morphe-desktop-1.14.0-all.jar patch \
+  -p patches/build/libs/patches-1.0.0.mpp \
+  --exclusive -e "Add music sources" \
+  -O 'extraMusicPackages=["com.aspiro.tidal","app.morphe.android.apps.youtube.music"]' \
+  -o patched.apk original.apk
+```
+
+<!-- PATCHES_END -->
