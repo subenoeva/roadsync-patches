@@ -53,9 +53,9 @@ Apps without one already work as plain transport targets and gain nothing from b
 > service only accepts allowlisted, signed clients, which is why it is not a default here.
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.0](https://github.com/subenoeva/roadsync-patches/releases/tag/v1.0.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
+> **[v1.1.0-dev.1](https://github.com/subenoeva/roadsync-patches/releases/tag/v1.1.0-dev.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
 <details open>
-<summary>📦 RoadSync&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 RoadSync&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -66,6 +66,7 @@ Apps without one already work as plain transport targets and gain nothing from b
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Add music sources](#add-music-sources) | Adds music apps to the list of sources RoadSync can browse and control from the handlebar. Apps must expose a media browser service to be browsable. | • Music app packages |
+| [Bypass Google login](#bypass-google-login) | Lets RoadSync reach the motorcycle controls without a Google account. Server features (account, trip history, weather) stay unavailable, and pairing a new motorcycle still depends on Honda's server accepting an unauthenticated request. |  |
 
 </details>
 
