@@ -53,36 +53,20 @@ Apps without one already work as plain transport targets and gain nothing from b
 > service only accepts allowlisted, signed clients, which is why it is not a default here.
 
 <!-- PATCHES_START EXPANDED -->
+> **[v1.0.0](https://github.com/subenoeva/roadsync-patches/releases/tag/v1.0.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
+<details open>
+<summary>📦 RoadSync&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
 
-<!-- Do not modify this section by hand. The patch list is generated when release.yml creates a new release.
+**🎯 Supported versions:**
 
-     If you wish for the patches list to be collapsed, then remove the word 'EXPANDED' from the comment tag above.
+| 26.4.10 |
+| :---: |
 
-     If you wish to manually keep this list updated then remove the PATCHES_START and PATCHES_END
-     comment blocks entirely. -->
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Add music sources](#add-music-sources) | Adds music apps to the list of sources RoadSync can browse and control from the handlebar. Apps must expose a media browser service to be browsable. | • Music app packages |
 
-&nbsp;
-
-## 🧑‍💻 Development
-
-- Make all changes on the `dev` branch.
-- `./gradlew buildAndroid` produces `patches/build/libs/patches-*.mpp`.
-- Requires a GitHub token with the `read:packages` scope for
-  `maven.pkg.github.com/MorpheApp/registry`, exported as `GITHUB_ACTOR` / `GITHUB_TOKEN` or set as
-  `gpr.user` / `gpr.key` in `~/.gradle/gradle.properties`.
-- Semantic commits only: `feat:`, `fix:`, `chore:`. `feat`/`fix` cut a pre-release; `chore` does not.
-- Never hand-edit generated files: `patches-list.json`, `patches-bundle.json`, `CHANGELOG.md`.
-- Releases go through `release.yml`. Do not create them by hand, and never force push a semantic
-  release commit.
-
-Apply a local build to an APK:
-
-```bash
-java -jar morphe-desktop-1.14.0-all.jar patch \
-  -p patches/build/libs/patches-1.0.0.mpp \
-  --exclusive -e "Add music sources" \
-  -O 'extraMusicPackages=["com.aspiro.tidal","app.morphe.android.apps.youtube.music"]' \
-  -o patched.apk original.apk
-```
+</details>
 
 <!-- PATCHES_END -->
