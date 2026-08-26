@@ -1,3 +1,9 @@
+## [1.2.2](https://github.com/subenoeva/roadsync-patches/compare/v1.2.1...v1.2.2) (2026-08-26)
+
+### 🐛 Bug Fixes
+
+* serve the offline pairing setup page locally past the server gate ([c881442](https://github.com/subenoeva/roadsync-patches/commit/c881442a21e828f10a9eab598fead6b10ea2b566))
+
 ## [1.2.2-dev.1](https://github.com/subenoeva/roadsync-patches/compare/v1.2.1...v1.2.2-dev.1) (2026-08-26)
 
 ### 🐛 Bug Fixes
