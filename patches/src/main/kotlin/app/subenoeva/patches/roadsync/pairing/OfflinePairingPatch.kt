@@ -15,14 +15,18 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
  *
  * Re-signing a patched build permanently breaks Google Sign-In, so it can never obtain a session
  * token, so every gRPC call to Honda's backend sends an empty `Authorization: Bearer` and comes
- * back `UNAUTHENTICATED`. Pairing a new bike hits that backend in **three** places, all through
- * `VehiclesRepository` (each delegates to a `…$2` coroutine that calls `ModelApi` over gRPC):
+ * back `UNAUTHENTICATED`. Pairing a new bike hits that backend in **four** places, all through
+ * `VehiclesRepository` (each delegates to a coroutine that calls `ModelApi` over gRPC):
  *
  * 1. **Start screen** — `getVehicleCatalogs` ([GetVehicleCatalogsFingerprint]) lists the models.
  * 2. **SelectModel screen** — `getVehicleSeries` ([GetVehicleSeriesFingerprint]) lists that model's
  *    year variants; tapping one writes it to `savedStateHandle["pairing_vehicle"]` and navigates to
  *    the scan/bond (Reset) screen.
- * 3. **The save itself** — `getVehicles` ([GetVehiclesFingerprint]), called from
+ * 3. **Reset (scan/bond) screen** — `getSetupPage` ([GetSetupPageFingerprint]), called from
+ *    `OnboardingPairingResetViewModel.loadHtml` the instant the screen opens, to fetch the model's
+ *    "put the bike in pairing mode" instructions as HTML. Offline it throws, and `loadHtml` turns
+ *    that into `UiState.ServerError` — the "server error" the Reset screen shows before you can scan.
+ * 4. **The save itself** — `getVehicles` ([GetVehiclesFingerprint]), called from
  *    `OnboardingPairingResetViewModel$saveVehicle$1` with the bike's BLE series code *after* a
  *    successful bond, right before it builds and inserts the `KnownVehicle`. This one is the
  *    non-obvious blocker: without it the bond succeeds but the save throws, so
@@ -40,6 +44,8 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
  *   (empty `vehicleCodes`, empty `imageIds`, meter type `-1`). That renders a single tappable card
  *   on each screen so the user can walk through to the scan, with **no** image fetch (empty
  *   `imageIds` means `saveVehicle`'s image loop never calls the server either).
+ * - `getSetupPage` returns a static local HTML string instead of calling the server, so the Reset
+ *   screen renders its instructions and lets you scan instead of showing a server error.
  * - `getVehicles` returns an **empty** list. In `saveVehicle` that takes the `if (result.isEmpty())`
  *   branch, which uses the vehicle the user selected above, then finishes: it inserts the selected
  *   `LocalVehicle` into the Room cache and writes a `KnownVehicle` with `state = PAIRED`, `mac` /
@@ -138,5 +144,17 @@ val offlinePairingPatch = bytecodePatch(
         val ifIndex = instructions.indexOfFirst { it.opcode == Opcode.IF_EQZ }
         val register = (instructions[ifIndex] as OneRegisterInstruction).registerA
         guard.addInstructions(ifIndex, "const/4 v$register, 0x0")
+
+        // getSetupPage(String, String, Continuation): return a static local HTML page instead of
+        // calling ModelApi.listModelSetupPage. loadHtml wraps it in UiState.Success, so the Reset
+        // screen shows instructions and lets the scan start instead of emitting UiState.ServerError.
+        // registers=8 (this + 2 String + Continuation → v4..v7), so v0 is a free local.
+        GetSetupPageFingerprint.method.addInstructions(
+            0,
+            """
+                const-string v0, "<html><body><h2>Pairing mode</h2><p>Put the motorcycle into BTU pairing mode, then start the scan.</p></body></html>"
+                return-object v0
+            """,
+        )
     }
 }
