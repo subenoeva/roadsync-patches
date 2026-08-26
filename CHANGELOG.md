@@ -1,3 +1,9 @@
+## [1.1.2](https://github.com/subenoeva/roadsync-patches/compare/v1.1.1...v1.1.2) (2026-08-26)
+
+### 🐛 Bug Fixes
+
+* Inject the first-run login skip at onViewCreated entry, not before its return ([cbb9ad2](https://github.com/subenoeva/roadsync-patches/commit/cbb9ad2997816f93df6a98c82115306ad4267cee))
+
 ## [1.1.2-dev.1](https://github.com/subenoeva/roadsync-patches/compare/v1.1.1...v1.1.2-dev.1) (2026-08-26)
 
 ### 🐛 Bug Fixes
