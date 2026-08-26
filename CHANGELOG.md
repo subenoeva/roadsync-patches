@@ -1,3 +1,9 @@
+## [1.1.1-dev.1](https://github.com/subenoeva/roadsync-patches/compare/v1.1.0...v1.1.1-dev.1) (2026-08-26)
+
+### 🐛 Bug Fixes
+
+* Skip login on the first-run onboarding, not only the blocker ([db6c578](https://github.com/subenoeva/roadsync-patches/commit/db6c578ee6831e5bc2f7570b32859c168428afd2))
+
 ## [1.1.0](https://github.com/subenoeva/roadsync-patches/compare/v1.0.0...v1.1.0) (2026-08-25)
 
 ### ✨ New Features

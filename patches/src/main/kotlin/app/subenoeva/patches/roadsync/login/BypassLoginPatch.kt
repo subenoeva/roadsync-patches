@@ -1,8 +1,10 @@
 package app.subenoeva.patches.roadsync.login
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.subenoeva.patches.shared.Constants.COMPATIBILITY_ROADSYNC
+import com.android.tools.smali.dexlib2.Opcode
 
 /**
  * Lets RoadSync run without signing in with Google.
@@ -80,6 +82,27 @@ val bypassGoogleLoginPatch = bytecodePatch(
         // are neutralized.
         listOf(TokenEmptyHandlerFingerprint, TokenEmptyHandlerOffFingerprint).forEach {
             it.method.addInstructions(0, "return-object p1")
+        }
+
+        // First-run onboarding shows the login screen directly (HomeActivity -> OnboardingActivity
+        // -> OnboardingLoginFragment), NOT through the blocker patched above. As soon as that
+        // fragment's view is created, invoke the app's own skipSignIn() (E0), which sets the
+        // onboarding state to CONSENT and advances to the next step with no server call. b0() is the
+        // fragment's view-model getter.
+        OnboardingLoginAutoSkipFingerprint.method.apply {
+            val returnIndex = implementation!!.instructions.indexOfLast { it.opcode == Opcode.RETURN_VOID }
+            if (returnIndex < 0) {
+                throw PatchException("Could not find the return of OnboardingLoginFragment.onViewCreated.")
+            }
+            addInstructions(
+                returnIndex,
+                // b0() is PRIVATE FINAL, so it must be called with invoke-direct, not invoke-virtual.
+                """
+                    invoke-direct { p0 }, Lcom/drivemode/sab/onboarding/setup/login/OnboardingLoginFragment;->b0()Lcom/drivemode/sab/onboarding/setup/login/OnboardingLoginViewModel;
+                    move-result-object v0
+                    invoke-virtual { v0 }, Lcom/drivemode/sab/onboarding/setup/login/OnboardingLoginViewModel;->E0()V
+                """,
+            )
         }
     }
 }

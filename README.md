@@ -87,7 +87,7 @@ weather — because those gRPC calls now send an empty `Authorization` header.
 > A motorcycle already paired in this build connects straight away and needs none of the above.
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.0](https://github.com/subenoeva/roadsync-patches/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
+> **[v1.1.1-dev.1](https://github.com/subenoeva/roadsync-patches/releases/tag/v1.1.1-dev.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
 <details open>
 <summary>📦 RoadSync&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
