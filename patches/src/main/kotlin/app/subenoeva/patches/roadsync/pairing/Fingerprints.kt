@@ -2,6 +2,8 @@ package app.subenoeva.patches.roadsync.pairing
 
 import app.morphe.patcher.Fingerprint
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 /**
  * `VehiclesRepository.getVehicleCatalogs(boolean, Continuation)` (emitted as `f`).
@@ -96,4 +98,39 @@ internal object StartOnNextGuardFingerprint : Fingerprint(
         "Lcom/drivemode/sab/onboarding/pair/OnboardingPairingStartViewModel\$SetupVehicle;",
     ),
     strings = listOf("Tapped Ready To Pair Button"),
+)
+
+/**
+ * `VehiclesRepository.getSetupPage(String, String, Continuation)` (emitted as `d`).
+ *
+ * The pairing **Reset** (scan/bond) screen builds its UI from `OnboardingPairingResetViewModel`'s
+ * `uiState` flow, whose first act (`loadHtml`) calls this with the selected vehicle's id and the
+ * current language tag to fetch the model's "put the bike in pairing mode" instructions as an HTML
+ * string. It delegates to `ModelApi.listModelSetupPage` over gRPC, so with no session it throws
+ * `UNAUTHENTICATED`; `loadHtml` catches that and emits `UiState.ServerError`, which is the
+ * "server error" the Reset screen shows offline right after the Start card navigates to it.
+ *
+ * `getSetupPage` (`d`) and `getTutorialPage` (`e`) are byte-for-byte twins in signature — both
+ * `(String, String, Continuation) -> Object`, `PUBLIC FINAL`, no string literals — so the class and
+ * signature alone are ambiguous. The [custom] predicate disambiguates on the only thing that differs
+ * in the body: `getSetupPage` casts its gRPC result to `ApiV2$ModelSetupPage` (the tutorial twin
+ * casts to `ApiV2$ModelTutorialPage`). `getTutorialPage` has no caller in the pairing flow, so only
+ * this one needs stubbing.
+ */
+internal object GetSetupPageFingerprint : Fingerprint(
+    definingClass = "Lcom/drivemode/sab/common/data/vehicles/VehiclesRepository;",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf(
+        "Ljava/lang/String;",
+        "Ljava/lang/String;",
+        "Lkotlin/coroutines/Continuation;",
+    ),
+    custom = { method, _ ->
+        method.implementation?.instructions?.any { instruction ->
+            instruction is ReferenceInstruction &&
+                (instruction.reference as? TypeReference)?.type ==
+                "Lcom/honda/roadsync/api/v2/ApiV2\$ModelSetupPage;"
+        } == true
+    },
 )
