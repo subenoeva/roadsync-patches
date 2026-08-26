@@ -1,10 +1,8 @@
 package app.subenoeva.patches.roadsync.login
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.subenoeva.patches.shared.Constants.COMPATIBILITY_ROADSYNC
-import com.android.tools.smali.dexlib2.Opcode
 
 /**
  * Lets RoadSync run without signing in with Google.
@@ -85,24 +83,22 @@ val bypassGoogleLoginPatch = bytecodePatch(
         }
 
         // First-run onboarding shows the login screen directly (HomeActivity -> OnboardingActivity
-        // -> OnboardingLoginFragment), NOT through the blocker patched above. As soon as that
-        // fragment's view is created, invoke the app's own skipSignIn() (E0), which sets the
-        // onboarding state to CONSENT and advances to the next step with no server call. b0() is the
-        // fragment's view-model getter.
-        OnboardingLoginAutoSkipFingerprint.method.apply {
-            val returnIndex = implementation!!.instructions.indexOfLast { it.opcode == Opcode.RETURN_VOID }
-            if (returnIndex < 0) {
-                throw PatchException("Could not find the return of OnboardingLoginFragment.onViewCreated.")
-            }
-            addInstructions(
-                returnIndex,
-                // b0() is PRIVATE FINAL, so it must be called with invoke-direct, not invoke-virtual.
-                """
-                    invoke-direct { p0 }, Lcom/drivemode/sab/onboarding/setup/login/OnboardingLoginFragment;->b0()Lcom/drivemode/sab/onboarding/setup/login/OnboardingLoginViewModel;
-                    move-result-object v0
-                    invoke-virtual { v0 }, Lcom/drivemode/sab/onboarding/setup/login/OnboardingLoginViewModel;->E0()V
-                """,
-            )
-        }
+        // -> OnboardingLoginFragment), NOT through the blocker patched above. Invoke the app's own
+        // skipSignIn() (E0) at the very start of onViewCreated: it sets the onboarding state to
+        // CONSENT and posts goToNextEvent with no server call, and the observer this same method
+        // registers delivers it once the view lifecycle reaches STARTED, navigating past login.
+        //
+        // The call MUST go in at index 0. `this` lives in register p0 only at method entry; R8
+        // reuses that physical register later in the body to hold an Observer lambda, so injecting
+        // near the return makes the verifier see p0 as SabFragment$sam$...$Observer$0 and reject the
+        // class (VerifyError -> crash). b0() is the PRIVATE FINAL view-model getter (invoke-direct).
+        OnboardingLoginAutoSkipFingerprint.method.addInstructions(
+            0,
+            """
+                invoke-direct { p0 }, Lcom/drivemode/sab/onboarding/setup/login/OnboardingLoginFragment;->b0()Lcom/drivemode/sab/onboarding/setup/login/OnboardingLoginViewModel;
+                move-result-object v0
+                invoke-virtual { v0 }, Lcom/drivemode/sab/onboarding/setup/login/OnboardingLoginViewModel;->E0()V
+            """,
+        )
     }
 }
