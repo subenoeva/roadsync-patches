@@ -64,3 +64,36 @@ internal object GetVehiclesFingerprint : Fingerprint(
         "Lkotlin/coroutines/Continuation;",
     ),
 )
+
+/**
+ * The Start screen's **"next" tap handler** — the synthetic lambda
+ * `OnboardingPairingStartFragment$onCreateView$1$1$1.n(fragment, setupVehicle)` (emitted as `n`),
+ * wired as the `onClick` of every model card.
+ *
+ * Its very first act is a sentinel guard that silently swallows the tap:
+ *
+ * ```
+ * if (setupVehicle.vehicle == SabVehicle.INSTANCE.unknown()) return   // no navigation
+ * ```
+ *
+ * The app appends that `unknown()` sentinel (`SabVehicle(LocalVehicle.UNKNOWN, emptyMap)`) itself in
+ * loading states and treats it as "no real selection". The offline catalog stub above serves exactly
+ * that `LocalVehicle.UNKNOWN` placeholder, and `loadVehicles` wraps it as `SabVehicle(UNKNOWN,
+ * emptyMap)` — i.e. structurally equal to the sentinel — so the card renders but its tap hits the
+ * guard and dies (observed on-device: the "Unknown" card does nothing). The patch neutralizes the
+ * guard so the placeholder proceeds to the Reset/bond screen (its `modelCount` of 1 skips SelectModel
+ * and navigates straight there).
+ *
+ * Anchored on the lambda class plus the analytics string it always emits on a real tap.
+ */
+internal object StartOnNextGuardFingerprint : Fingerprint(
+    definingClass =
+        "Lcom/drivemode/sab/onboarding/pair/OnboardingPairingStartFragment\$onCreateView\$1\$1\$1;",
+    accessFlags = listOf(AccessFlags.PRIVATE, AccessFlags.STATIC, AccessFlags.FINAL),
+    returnType = "Lkotlin/Unit;",
+    parameters = listOf(
+        "Lcom/drivemode/sab/onboarding/pair/OnboardingPairingStartFragment;",
+        "Lcom/drivemode/sab/onboarding/pair/OnboardingPairingStartViewModel\$SetupVehicle;",
+    ),
+    strings = listOf("Tapped Ready To Pair Button"),
+)
