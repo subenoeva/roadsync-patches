@@ -1,3 +1,9 @@
+## [1.2.0](https://github.com/subenoeva/roadsync-patches/compare/v1.1.2...v1.2.0) (2026-08-26)
+
+### ✨ New Features
+
+* add Offline pairing patch ([98f4017](https://github.com/subenoeva/roadsync-patches/commit/98f4017cac02de27a6f4424e232a97dae3b643c5))
+
 ## [1.2.0-dev.1](https://github.com/subenoeva/roadsync-patches/compare/v1.1.2...v1.2.0-dev.1) (2026-08-26)
 
 ### ✨ New Features
