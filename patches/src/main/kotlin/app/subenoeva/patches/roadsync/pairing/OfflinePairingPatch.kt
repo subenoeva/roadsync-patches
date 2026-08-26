@@ -3,6 +3,8 @@ package app.subenoeva.patches.roadsync.pairing
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.subenoeva.patches.shared.Constants.COMPATIBILITY_ROADSYNC
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
 /**
  * Lets RoadSync pair a brand-new motorcycle and reach the handlebar controls with no Google account
@@ -43,6 +45,11 @@ import app.subenoeva.patches.shared.Constants.COMPATIBILITY_ROADSYNC
  *   `LocalVehicle` into the Room cache and writes a `KnownVehicle` with `state = PAIRED`, `mac` /
  *   `btuName` / `firmwareVersion` taken from the bike over BLE, and `vehicleName` / `modelId` taken
  *   from the placeholder.
+ * - The Start screen's tap handler ([StartOnNextGuardFingerprint]) has a sentinel guard that
+ *   silently swallows a tap on the `LocalVehicle.UNKNOWN` placeholder (the app's own "no real
+ *   selection" marker, which is exactly what the catalog stub serves). Without neutralizing it the
+ *   card renders but tapping does nothing. The patch zeroes that comparison so the placeholder
+ *   navigates on to the Reset/bond screen.
  *
  * ## What it does NOT do
  *
@@ -115,5 +122,21 @@ val offlinePairingPatch = bytecodePatch(
                 return-object v0
             """,
         )
+
+        // Start screen's onNext tap handler bails before navigating when the tapped vehicle equals
+        // the app's "unknown" sentinel (SabVehicle(LocalVehicle.UNKNOWN, emptyMap)) — which is
+        // exactly what the catalog stub above serves. Force the sentinel comparison to `false` so the
+        // placeholder card navigates: its `modelCount` of 1 sends it straight to the Reset/bond
+        // screen. See [StartOnNextGuardFingerprint].
+        //
+        // The guard is the method's only IF_EQZ (`if-eqz vX, :navigate` right after
+        // `Intrinsics.areEqual(vehicle, sentinel)`); zeroing that register makes it always branch to
+        // the navigation. The register is reused and reassigned on the navigation path, so clobbering
+        // it here is safe.
+        val guard = StartOnNextGuardFingerprint.method
+        val instructions = guard.implementation!!.instructions
+        val ifIndex = instructions.indexOfFirst { it.opcode == Opcode.IF_EQZ }
+        val register = (instructions[ifIndex] as OneRegisterInstruction).registerA
+        guard.addInstructions(ifIndex, "const/4 v$register, 0x0")
     }
 }

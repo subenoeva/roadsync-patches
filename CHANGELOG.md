@@ -1,3 +1,9 @@
+## [1.2.1-dev.1](https://github.com/subenoeva/roadsync-patches/compare/v1.2.0...v1.2.1-dev.1) (2026-08-26)
+
+### 🐛 Bug Fixes
+
+* navigate past the offline pairing catalog placeholder's sentinel guard ([e40b3cc](https://github.com/subenoeva/roadsync-patches/commit/e40b3cc2e75e48003034d8a2e8656c0d8e56f81e))
+
 ## [1.2.0](https://github.com/subenoeva/roadsync-patches/compare/v1.1.2...v1.2.0) (2026-08-26)
 
 ### ✨ New Features
