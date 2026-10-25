@@ -86,6 +86,23 @@ weather — because those gRPC calls now send an empty `Authorization` header.
 >
 > A motorcycle already paired in this build connects straight away and needs none of the above.
 
+### Open-Meteo weather
+
+RoadSync's weather widget and forecast page call Honda's gRPC API, which rejects the
+unauthenticated requests a patched build makes (see [Bypass Google login](#bypass-google-login)).
+This patch replaces both `SabWeatherProvider` lookups with [Open-Meteo](https://open-meteo.com),
+which needs no API key:
+
+- Current conditions and the hourly forecast come from `api.open-meteo.com`. WMO weather codes are
+  mapped onto the OpenWeatherMap condition ids the app's icons and day/night logic are keyed on.
+- The location label comes from BigDataCloud's free reverse geocoding endpoint. If that lookup fails
+  the label is left empty and the weather still shows.
+- Condition descriptions are English only.
+
+The replacement provider is plain Java in [`extensions/weather`](extensions/weather). It is compiled
+against small stubs of the app classes it uses (`javac --release 8`, then `d8 --min-api 26`), and
+the resulting dex is embedded in `OpenMeteoDex.kt` so building the patches needs no Android SDK.
+
 <!-- PATCHES_START EXPANDED -->
 > **[v1.2.2](https://github.com/subenoeva/roadsync-patches/releases/tag/v1.2.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;3 patches total
 <details open>

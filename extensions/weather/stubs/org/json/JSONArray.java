@@ -1,0 +1,1 @@
+package org.json; public class JSONArray { public int length(){return 0;} public double getDouble(int i) throws JSONException {return 0;} public int getInt(int i) throws JSONException {return 0;} public String getString(int i) throws JSONException {return null;} }
