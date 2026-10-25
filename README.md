@@ -52,6 +52,28 @@ Apps without one already work as plain transport targets and gain nothing from b
 > instead of falling back to plain media session control. Spotify is the known case — its browser
 > service only accepts allowlisted, signed clients, which is why it is not a default here.
 
+### Selectable music sources
+
+The music source picker (profile → Settings → Music source) only lists supported apps plus generic
+apps that currently hold an active media session. A generic app such as Symfonium therefore only
+shows up while it is already playing, and RoadSync loses it once it was started after connecting.
+
+This patch makes `DmMusicManager`'s source list append the packages from the option below, resolved
+through the provider's own lookup, so they are always listed and selectable.
+
+#### Option: `selectableMusicPackages`
+
+Defaults to `app.symfonik.music.player` (Symfonium). Each package should also be whitelisted through
+[Add music sources](#add-music-sources) so its media browser service can be bound. Do not list apps
+RoadSync already supports natively; they would appear twice.
+
+### Launch music app on demand
+
+RoadSync's playback path calls `play(isAutoLaunch = false, ...)`, so when the selected app has no
+media session it fails with "session not detected" instead of starting the app. This patch forces
+`isAutoLaunch = true`, letting the SDK launch the selected music app and retry, the same behaviour
+supported apps such as YouTube Music get.
+
 ### Bypass Google login
 
 Patching re-signs the APK with a new certificate. Google Sign-In validates the app's package name
